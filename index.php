@@ -1,5 +1,57 @@
 <?php $site_title='MegaTrades'; include 'includes/header.php'; ?>
-
+<?php
+require_once "includes/db_connect.php";
+require_once "includes/banner_helper.php";
+$banner = get_active_banner($conn);
+if ($banner):
+    $start = new DateTime($banner['start_time']);
+    $start->modify("+".$banner['expiry_days']." days");
+    $expire_time = $start->format('Y-m-d H:i:s');
+?>
+<div id="promo-banner-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;">
+    <div style="position:relative;background:#fff;padding:30px 20px 20px 20px;border-radius:12px;box-shadow:0 2px 16px #0008;max-width:360px;text-align:center;">
+        <button onclick="closePromoBanner()" style="position:absolute;top:6px;right:8px;font-size:24px;background:none;border:none;cursor:pointer">✖️</button>
+        <h3 style="margin-top:0"><?php echo htmlspecialchars($banner['header_text']); ?></h3>
+        <a href="<?php echo htmlspecialchars($banner['url']); ?>" target="_blank">
+            <img src="<?php echo htmlspecialchars($banner['image_path']); ?>" alt="Banner" style="max-width:96%;max-height:120px;border-radius:8px;">
+        </a>
+        <div style="margin-top:16px;font-size:22px;font-weight:bold;color:#e74c3c;">
+            Expires in: <span id="promo-banner-timer"></span>
+        </div>
+        <div style="margin-top:12px;">
+            <a href="<?php echo htmlspecialchars($banner['url']); ?>" target="_blank" style="padding:8px 16px;background:#3498db;color:#fff;border-radius:5px;text-decoration:none;font-size:16px;">Visit now</a>
+        </div>
+    </div>
+</div>
+<script>
+function closePromoBanner() {
+    document.getElementById('promo-banner-overlay').style.display = 'none';
+    localStorage.setItem('promoBannerClosed','1');
+}
+window.onload = function() {
+    if (localStorage.getItem('promoBannerClosed')) {
+        document.getElementById('promo-banner-overlay').style.display = 'none';
+    }
+    // Countdown
+    var end = new Date("<?php echo $expire_time; ?>").getTime();
+    var timer = document.getElementById('promo-banner-timer');
+    var intv = setInterval(function(){
+        var now = Date.now();
+        var diff = end - now;
+        if (diff < 1) {
+            clearInterval(intv);
+            document.getElementById('promo-banner-overlay').style.display = 'none';
+            return;
+        }
+        var s = Math.floor(diff/1000)%60;
+        var m = Math.floor(diff/60000)%60;
+        var h = Math.floor(diff/3600000)%24;
+        var d = Math.floor(diff/86400000);
+        timer.textContent = d+"d "+h+"h "+m+"m "+s+"s";
+    }, 1000);
+};
+</script>
+<?php endif; ?>
 <!-- Hero Section with Image Background -->
 
 <section class="hero-section text-white text-center d-flex align-items-start justify-content-center" style="background: url('assets/hero-bg.jpg') center center/cover no-repeat; min-height: 60vh; padding-top: 60px;">

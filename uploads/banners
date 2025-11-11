@@ -1,0 +1,2 @@
+mkdir -p uploads/banners
+chmod 775 uploads/banners
